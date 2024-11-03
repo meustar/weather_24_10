@@ -1,8 +1,3 @@
-CREATE TABLE Weather (
-                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
-                         city VARCHAR(50) NOT NULL,
-                         temperature DOUBLE,
-                         humidity INT,
-                         wind_speed DOUBLE,
-                         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+DROP DATABASE IF EXISTS `weather_24_10`;
+CREATE DATABASE `weather_24_10`;
+USE `weather_24_10`;
