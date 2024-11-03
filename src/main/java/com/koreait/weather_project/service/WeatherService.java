@@ -8,8 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class WeatherService {
@@ -17,32 +20,41 @@ public class WeatherService {
     @Autowired
     private WeatherRepository weatherRepository;
 
-    private final String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst";
+    // OpenWeather API URL
+    private final String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
+
+    // OpenWeather API Key (발급받은 API Key 입력)
+    private final String apiKey = "6092655f10eec7e6a4e71bbdcc27a3d3";
+
+    // 한글 도시 이름을 영문으로 매핑
+    private final Map<String, String> cityMapping;
+    public WeatherService() {
+        cityMapping = new HashMap<>();
+        cityMapping.put("서울", "Seoul");
+        cityMapping.put("대전", "Daejeon");
+        cityMapping.put("대구", "Daegu");
+        cityMapping.put("부산", "Busan");
+        cityMapping.put("광주", "Gwangju");
+        cityMapping.put("울산", "Ulsan");
+        cityMapping.put("인천", "Incheon");
+    }
 
     public Weather getWeather(String cityName, String nx, String ny) {
-        Weather weather = fetchWeatherFromAPI(cityName, nx, ny);
+        Weather weather = fetchWeatherFromAPI(cityName);
         if (weather != null) {
             weatherRepository.save(weather);
         }
         return weather;
     }
 
-    private Weather fetchWeatherFromAPI(String cityName, String nx, String ny) {
+    private Weather fetchWeatherFromAPI(String cityName) {
         try {
-            // 발표 일자: 현재 날짜로 설정
-            String baseDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-            // 발표 시각: 06시 (정시 단위, 예시로 설정)
-            String baseTime = "0600";
-            // 서비스 키: 공공데이터 포털에서 발급받은 인증키 사용
-            String apiKey = "API KEY"; // 새로 발급받은 API 키 입력
+            // 한글 도시 이름을 영문으로 변환
+            String city = cityMapping.getOrDefault(cityName, cityName);
+            String encodedCityName = URLEncoder.encode(city, StandardCharsets.UTF_8.toString());
 
             // URL 구성
-            String url = apiUrl + "?serviceKey=" + apiKey
-                    + "&numOfRows=10&pageNo=1&dataType=JSON"
-                    + "&base_date=" + baseDate
-                    + "&base_time=" + baseTime
-                    + "&nx=" + nx
-                    + "&ny=" + ny;
+            String url = apiUrl + "?q=" + encodedCityName  + "&appid=" + apiKey + "&units=metric";
 
             System.out.println("Request URL: " + url); // 디버깅을 위한 URL 출력
 
@@ -50,34 +62,16 @@ public class WeatherService {
             RestTemplate restTemplate = new RestTemplate();
             String response = restTemplate.getForObject(url, String.class);
 
-            // XML 응답 처리
-            if (response.startsWith("<")) {
-                System.out.println("Received XML response: " + response);
-                return null;
-            }
-
             // JSON 응답 파싱
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(response);
-            JsonNode items = rootNode.path("response").path("body").path("items").path("item");
 
             // 날씨 데이터 추출
-            double temperature = 0.0;
-            int humidity = 0;
-            double windSpeed = 0.0;
+            double temperature = rootNode.path("main").path("temp").asDouble();
+            int humidity = rootNode.path("main").path("humidity").asInt();
+            double windSpeed = rootNode.path("wind").path("speed").asDouble();
 
-            for (JsonNode item : items) {
-                String category = item.path("category").asText();
-                if ("T1H".equals(category)) { // 기온
-                    temperature = item.path("obsrValue").asDouble();
-                } else if ("REH".equals(category)) { // 습도
-                    humidity = item.path("obsrValue").asInt();
-                } else if ("WSD".equals(category)) { // 풍속
-                    windSpeed = item.path("obsrValue").asDouble();
-                }
-            }
-
-            return new Weather(cityName, temperature, humidity, windSpeed, LocalDate.now().atStartOfDay());
+            return new Weather(cityName, temperature, humidity, windSpeed, LocalDateTime.now());
 
         } catch (Exception e) {
             System.out.println("Error fetching weather data: " + e.getMessage());

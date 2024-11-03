@@ -1,22 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <meta charset="UTF-8">
-        <title>Weather Information</title>
-    </head>
-    <body>
-        <h2>Weather Information</h2>
-        <form action="/weather" method="get">
-            <label for="city">Enter city name:</label>
-            <input type="text" id="city" name="city" required>
-            <button type="submit">Get Weather</button>
-        </form>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Weather Information</title>
+</head>
+<body>
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">Weather Information</h2>
+            <form action="/weather" method="get" class="form-inline justify-content-center mb-4">
+                <div class="form-group mx-sm-3 mb-2">
+                    <label for="city" class="sr-only">Enter city name:</label>
+                    <input type="text" id="city" name="city" class="form-control" placeholder="도시 이름을 입력하세요" required>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Get Weather</button>
+            </form>
 
-        <div th:if="${weather}">
-            <h3>Weather in <span th:text="${city}"></span></h3>
-            <p>Temperature: <span th:text="${weather.temperature}"></span>°C</p>
-            <p>Humidity: <span th:text="${weather.humidity}"></span>%</p>
-            <p>Wind Speed: <span th:text="${weather.windSpeed}"></span> m/s</p>
+            <div th:if="${weather}" class="text-center mt-4">
+                <h3>Weather in <span th:text="${city}"></span></h3>
+                <p class="lead">Temperature: <span th:text="${weather.temperature}"></span>°C</p>
+                <p class="lead">Humidity: <span th:text="${weather.humidity}"></span>%</p>
+                <p class="lead">Wind Speed: <span th:text="${weather.windSpeed}"></span> m/s</p>
+            </div>
         </div>
-    </body>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
