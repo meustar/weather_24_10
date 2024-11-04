@@ -24,7 +24,7 @@ public class WeatherService {
     private final String apiUrl = "https://api.openweathermap.org/data/2.5/weather";
 
     // OpenWeather API Key (발급받은 API Key 입력)
-    private final String apiKey = "6092655f10eec7e6a4e71bbdcc27a3d3";
+    private final String apiKey = "API_KEY";
 
     // 한글 도시 이름을 영문으로 매핑
     private final Map<String, String> cityMapping;
